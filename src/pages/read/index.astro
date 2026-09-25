@@ -1,0 +1,9 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import ComicReader from '@/components/ComicReader.astro';
+import { comic } from '@/config/comic';
+---
+
+<BaseLayout title="Read" description={`Read ${comic.title} from the beginning.`} bare>
+  <ComicReader />
+</BaseLayout>

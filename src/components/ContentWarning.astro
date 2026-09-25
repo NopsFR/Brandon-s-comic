@@ -1,0 +1,51 @@
+---
+import { comic } from '@/config/comic';
+
+export interface Props {
+  /** Slightly more compact rendering, used above the reader. */
+  compact?: boolean;
+}
+
+const { compact = false } = Astro.props;
+---
+
+<section class={`content-warning ${compact ? 'content-warning--compact' : ''}`} aria-labelledby="content-warning-heading">
+  <span class="eyebrow" id="content-warning-heading">Content warning</span>
+  <ul>
+    {comic.contentWarnings.map((warning) => <li>{warning}</li>)}
+  </ul>
+</section>
+
+<style>
+  .content-warning {
+    border: 1px solid var(--color-border);
+    border-left: 3px solid var(--color-accent);
+    background: var(--color-bg-raised);
+    padding: var(--space-4);
+  }
+
+  .content-warning ul {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+  }
+
+  .content-warning li {
+    color: var(--color-text-muted);
+    font-size: 0.95rem;
+  }
+
+  .content-warning li::before {
+    content: '— ';
+    color: var(--color-accent-bright);
+  }
+
+  .content-warning--compact {
+    padding: var(--space-3);
+  }
+
+  .content-warning--compact .eyebrow {
+    margin-bottom: var(--space-1);
+  }
+</style>

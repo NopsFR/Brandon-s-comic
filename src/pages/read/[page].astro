@@ -1,0 +1,20 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import ComicReader from '@/components/ComicReader.astro';
+import { comic } from '@/config/comic';
+import { getComicPages, formatPageNumber } from '@/utils/comics';
+
+export function getStaticPaths() {
+  const pages = getComicPages();
+  return pages.map((page) => ({
+    params: { page: String(page.number) },
+  }));
+}
+
+const { page } = Astro.params;
+const padded = formatPageNumber(parseInt(page ?? '1', 10));
+---
+
+<BaseLayout title={`Page ${padded}`} description={`Read ${comic.title} page ${padded}.`} bare>
+  <ComicReader />
+</BaseLayout>

@@ -1,0 +1,154 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import ContentWarning from '@/components/ContentWarning.astro';
+import { comic } from '@/config/comic';
+import { getComicFiles, formatPageNumber } from '@/utils/comics';
+
+const base = import.meta.env.BASE_URL;
+const files = getComicFiles();
+const recentPages = files.slice(-4).reverse();
+---
+
+<BaseLayout title={comic.title} description={comic.description}>
+  <section class="hero wrap">
+    <span class="eyebrow">Webcomic</span>
+    <h1 class="hero__title">{comic.title}</h1>
+    <p class="hero__subtitle" lang="en">{comic.subtitle}</p>
+    <p class="hero__description">{comic.description}</p>
+    <div class="hero__actions">
+      <a class="button button--solid" href={`${base}read/`}>Start Reading</a>
+      <a class="button" href={`${base}archive/`}>View Archive</a>
+    </div>
+  </section>
+
+  <section class="section wrap" aria-labelledby="warning-heading">
+    <h2 class="visually-hidden" id="warning-heading">Content warning</h2>
+    <ContentWarning />
+  </section>
+
+  <section class="section wrap" aria-labelledby="archive-heading">
+    <div class="section__head">
+      <h2 id="archive-heading">Latest pages</h2>
+      <a href={`${base}archive/`}>Full archive &rarr;</a>
+    </div>
+
+    {
+      files.length === 0 ? (
+        <p class="section__empty">No pages uploaded yet — check back soon.</p>
+      ) : (
+        <ul class="page-grid">
+          {recentPages.map((file) => (
+            <li>
+              <a href={`${base}read/${file.number}/`} class="page-grid__item">
+                <img src={file.src} alt={`${comic.title} comic page ${formatPageNumber(file.number)}`} loading="lazy" decoding="async" />
+                <span>Page {formatPageNumber(file.number)}</span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      )
+    }
+  </section>
+
+  <section class="section wrap" aria-labelledby="about-heading">
+    <h2 id="about-heading">About the comic</h2>
+    <p class="section__text">{comic.aboutText}</p>
+    <a href={`${base}about/`}>More about {comic.title} &rarr;</a>
+  </section>
+</BaseLayout>
+
+<style>
+  .hero {
+    padding-block: var(--space-7) var(--space-6);
+  }
+
+  .hero__title {
+    font-size: clamp(3rem, 10vw, 5.5rem);
+    letter-spacing: -0.01em;
+  }
+
+  .hero__subtitle {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: 1.25rem;
+    color: var(--color-text-muted);
+    margin-top: var(--space-2);
+  }
+
+  .hero__description {
+    max-width: 34rem;
+    margin-top: var(--space-4);
+    color: var(--color-text-muted);
+  }
+
+  .hero__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    margin-top: var(--space-5);
+  }
+
+  .section {
+    padding-block: var(--space-6);
+    border-top: 1px solid var(--color-border);
+  }
+
+  .section__head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--space-3);
+    margin-bottom: var(--space-4);
+  }
+
+  .section__head a {
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+    text-decoration: none;
+    white-space: nowrap;
+  }
+
+  .section__head a:hover {
+    color: var(--color-accent-bright);
+  }
+
+  .section__text {
+    max-width: 34rem;
+    color: var(--color-text-muted);
+    margin-bottom: var(--space-3);
+  }
+
+  .section__empty {
+    color: var(--color-text-faint);
+    font-style: italic;
+  }
+
+  .page-grid {
+    list-style: none;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(9rem, 1fr));
+    gap: var(--space-3);
+  }
+
+  .page-grid__item {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    text-decoration: none;
+    color: var(--color-text-faint);
+    font-size: 0.75rem;
+    letter-spacing: 0.06em;
+  }
+
+  .page-grid__item img {
+    aspect-ratio: 2 / 3;
+    object-fit: cover;
+    border: 1px solid var(--color-border);
+    transition: border-color 0.15s ease;
+  }
+
+  .page-grid__item:hover img,
+  .page-grid__item:focus-visible img {
+    border-color: var(--color-accent);
+  }
+</style>
