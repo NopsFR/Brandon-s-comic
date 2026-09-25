@@ -1,0 +1,219 @@
+---
+export interface Props {
+  totalPages: number;
+}
+
+const { totalPages } = Astro.props;
+const base = import.meta.env.BASE_URL;
+---
+
+<div class="reader-controls" data-total-pages={totalPages} data-base={base}>
+  <div class="reader-controls__inner wrap">
+    <a class="reader-controls__link" href={`${base}archive/`}>Archive</a>
+
+    <div class="reader-controls__nav" role="group" aria-label="Page navigation">
+      <button type="button" data-action="first" aria-label="First page" title="First page">First</button>
+      <button type="button" data-action="prev" aria-label="Previous page" title="Previous page">&larr;</button>
+      <span class="reader-controls__status" aria-live="polite" data-status>
+        Page 1 / {totalPages}
+      </span>
+      <button type="button" data-action="next" aria-label="Next page" title="Next page">&rarr;</button>
+      <button type="button" data-action="last" aria-label="Last page" title="Last page">Last</button>
+    </div>
+
+    <button type="button" class="reader-controls__link" data-action="top">Top</button>
+  </div>
+</div>
+
+<style>
+  .reader-controls {
+    position: sticky;
+    bottom: 0;
+    z-index: 40;
+    background: rgba(10, 9, 8, 0.94);
+    backdrop-filter: blur(6px);
+    border-top: 1px solid var(--color-border);
+  }
+
+  .reader-controls__inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: var(--space-2) var(--space-3);
+    padding-block: var(--space-2);
+    max-width: 40rem;
+  }
+
+  .reader-controls__nav {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+  }
+
+  .reader-controls button,
+  .reader-controls__link {
+    background: transparent;
+    border: 1px solid var(--color-border);
+    color: var(--color-text-muted);
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    padding: 0.5em 0.8em;
+    border-radius: 2px;
+    cursor: pointer;
+    text-decoration: none;
+    min-height: 2.25rem;
+    min-width: 2.25rem;
+    line-height: 1;
+  }
+
+  .reader-controls button:hover,
+  .reader-controls__link:hover {
+    color: var(--color-text);
+    border-color: var(--color-accent);
+  }
+
+  .reader-controls__status {
+    font-size: 0.75rem;
+    color: var(--color-text-faint);
+    white-space: nowrap;
+    min-width: 6.5rem;
+    text-align: center;
+  }
+
+  @media (max-width: 560px) {
+    .reader-controls__inner {
+      justify-content: center;
+      gap: var(--space-2);
+    }
+
+    .reader-controls__nav {
+      order: 3;
+      width: 100%;
+      justify-content: center;
+    }
+
+    .reader-controls__status {
+      min-width: 4.5rem;
+      font-size: 0.7rem;
+    }
+
+    .reader-controls button,
+    .reader-controls__link {
+      padding: 0.5em 0.6em;
+      font-size: 0.75rem;
+      min-width: 2rem;
+    }
+  }
+</style>
+
+<script>
+  function initReaderControls() {
+    const root = document.querySelector<HTMLElement>('.reader-controls');
+    if (!root) return;
+
+    const base = root.dataset.base ?? '/';
+    const totalPages = parseInt(root.dataset.totalPages ?? '0', 10);
+    const statusEl = root.querySelector<HTMLElement>('[data-status]');
+    const pages = Array.from(document.querySelectorAll<HTMLElement>('.comic-page'));
+
+    if (pages.length === 0) return;
+
+    function pageNumberOf(el: HTMLElement): number {
+      return parseInt(el.dataset.pageNumber ?? '1', 10);
+    }
+
+    let current = pageNumberOf(pages[0]);
+
+    function setStatus(n: number) {
+      current = n;
+      if (statusEl) statusEl.textContent = `Page ${n} / ${totalPages}`;
+    }
+
+    function scrollToPage(n: number) {
+      const clamped = Math.min(Math.max(n, 1), totalPages);
+      const target = document.getElementById(`page-${clamped}`);
+      if (target) {
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }
+
+    root.addEventListener('click', (event) => {
+      const button = (event.target as HTMLElement).closest<HTMLElement>('[data-action]');
+      if (!button) return;
+      const action = button.dataset.action;
+
+      switch (action) {
+        case 'first':
+          scrollToPage(1);
+          break;
+        case 'prev':
+          scrollToPage(current - 1);
+          break;
+        case 'next':
+          scrollToPage(current + 1);
+          break;
+        case 'last':
+          scrollToPage(totalPages);
+          break;
+        case 'top':
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+          break;
+      }
+    });
+
+    // Keep the "Page X / Y" indicator in sync with natural scrolling.
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visible = entries
+          .filter((entry) => entry.isIntersecting)
+          .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+        if (visible) {
+          setStatus(pageNumberOf(visible.target as HTMLElement));
+        }
+      },
+      { threshold: [0.25, 0.5, 0.75] }
+    );
+
+    pages.forEach((page) => observer.observe(page));
+
+    // Keyboard navigation: arrows step one page, Home/End jump to the ends.
+    window.addEventListener('keydown', (event) => {
+      if (event.metaKey || event.ctrlKey || event.altKey) return;
+
+      switch (event.key) {
+        case 'ArrowRight':
+        case 'ArrowDown':
+          event.preventDefault();
+          scrollToPage(current + 1);
+          break;
+        case 'ArrowLeft':
+        case 'ArrowUp':
+          event.preventDefault();
+          scrollToPage(current - 1);
+          break;
+        case 'Home':
+          event.preventDefault();
+          scrollToPage(1);
+          break;
+        case 'End':
+          event.preventDefault();
+          scrollToPage(totalPages);
+          break;
+      }
+    });
+
+    // If the page loaded with a #page-N hash or a /read/N route, jump there.
+    const hashMatch = window.location.hash.match(/page-(\d+)/);
+    const pathMatch = window.location.pathname.match(/\/read\/(\d+)\/?$/);
+    const initial = hashMatch?.[1] ?? pathMatch?.[1];
+    if (initial) {
+      requestAnimationFrame(() => scrollToPage(parseInt(initial, 10)));
+    }
+
+    void base;
+  }
+
+  initReaderControls();
+</script>

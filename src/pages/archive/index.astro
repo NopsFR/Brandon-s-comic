@@ -1,0 +1,114 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import { comic } from '@/config/comic';
+import { getComicPages, formatPageNumber } from '@/utils/comics';
+
+const pages = getComicPages();
+const base = import.meta.env.BASE_URL;
+---
+
+<BaseLayout title="Archive" description={`Every page of ${comic.title} in order.`}>
+  <section class="archive-head wrap">
+    <span class="eyebrow">Archive</span>
+    <h1>Every page</h1>
+    <p>
+      {pages.length} page{pages.length === 1 ? '' : 's'} so far. Pick one up, or
+      <a href={`${base}read/`}>start from the beginning</a>.
+    </p>
+  </section>
+
+  <section class="wrap archive-grid" aria-label="Comic page archive">
+    <ul>
+      {
+        pages.map((page) => (
+          <li>
+            <a href={`${base}read/${page.number}/`} class:list={['archive-item', { 'archive-item--missing': !page.file }]}>
+              {page.file ? (
+                <img
+                  src={page.file.src}
+                  alt={`${comic.title} comic page ${formatPageNumber(page.number)}`}
+                  loading="lazy"
+                  decoding="async"
+                />
+              ) : (
+                <span class="archive-item__placeholder" aria-hidden="true">
+                  Not uploaded
+                </span>
+              )}
+              <span class="archive-item__number">{formatPageNumber(page.number)}</span>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+</BaseLayout>
+
+<style>
+  .archive-head {
+    padding-block: var(--space-6) var(--space-5);
+  }
+
+  .archive-head p {
+    color: var(--color-text-muted);
+    margin-top: var(--space-2);
+  }
+
+  .archive-head a {
+    color: var(--color-accent-bright);
+  }
+
+  .archive-grid {
+    max-width: 64rem;
+    padding-block: 0 var(--space-6);
+  }
+
+  .archive-grid ul {
+    list-style: none;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(7.5rem, 1fr));
+    gap: var(--space-3);
+  }
+
+  .archive-item {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    text-decoration: none;
+    color: var(--color-text-faint);
+    font-size: 0.75rem;
+    letter-spacing: 0.06em;
+  }
+
+  .archive-item img {
+    aspect-ratio: 2 / 3;
+    object-fit: cover;
+    border: 1px solid var(--color-border);
+    transition: border-color 0.15s ease;
+  }
+
+  .archive-item:hover img,
+  .archive-item:focus-visible img {
+    border-color: var(--color-accent);
+  }
+
+  .archive-item__placeholder {
+    aspect-ratio: 2 / 3;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: var(--space-2);
+    border: 1px dashed var(--color-border);
+    color: var(--color-text-faint);
+    font-size: 0.7rem;
+  }
+
+  .archive-item--missing {
+    opacity: 0.65;
+  }
+
+  .archive-item__number {
+    text-align: center;
+  }
+</style>

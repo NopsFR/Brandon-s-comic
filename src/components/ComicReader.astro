@@ -1,0 +1,56 @@
+---
+import ContentWarning from '@/components/ContentWarning.astro';
+import ComicPage from '@/components/ComicPage.astro';
+import ReaderControls from '@/components/ReaderControls.astro';
+import { comic } from '@/config/comic';
+import { getComicPages } from '@/utils/comics';
+
+const pages = getComicPages();
+const base = import.meta.env.BASE_URL;
+---
+
+<section class="reader-intro wrap">
+  <ContentWarning compact />
+</section>
+
+<div class="reader">
+  {pages.map((page, index) => <ComicPage page={page} priority={index < 2} />)}
+</div>
+
+<section class="reader-end wrap">
+  <p>You've reached the end — for now.</p>
+  <div class="reader-end__actions">
+    <a class="button" href={`${base}archive/`}>Back to archive</a>
+    <a class="button" href={base}>{comic.title} home</a>
+  </div>
+</section>
+
+<ReaderControls totalPages={pages.length} />
+
+<style>
+  .reader-intro {
+    padding-block: var(--space-4);
+    max-width: var(--reader-width);
+  }
+
+  .reader {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-6);
+    padding-block: var(--space-4) var(--space-7);
+  }
+
+  .reader-end {
+    text-align: center;
+    padding-block: var(--space-6) var(--space-7);
+    border-top: 1px solid var(--color-border);
+    color: var(--color-text-muted);
+  }
+
+  .reader-end__actions {
+    display: flex;
+    justify-content: center;
+    gap: var(--space-3);
+    margin-top: var(--space-4);
+  }
+</style>

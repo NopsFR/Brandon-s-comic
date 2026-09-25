@@ -1,0 +1,87 @@
+---
+import { formatPageNumber, type ComicPage } from '@/utils/comics';
+import { comic } from '@/config/comic';
+
+export interface Props {
+  page: ComicPage;
+  /** Load eagerly instead of lazily — used for the first page or two. */
+  priority?: boolean;
+}
+
+const { page, priority = false } = Astro.props;
+const padded = formatPageNumber(page.number);
+---
+
+<section class="comic-page" id={`page-${page.number}`} data-page-number={page.number}>
+  {
+    page.file ? (
+      <img
+        src={page.file.src}
+        alt={`${comic.title} comic page ${padded}`}
+        loading={priority ? 'eager' : 'lazy'}
+        decoding="async"
+      />
+    ) : (
+      <div class="comic-page__placeholder" role="img" aria-label={`Page ${padded}, comic page not uploaded yet`}>
+        <span class="comic-page__placeholder-number">Page {padded}</span>
+        <span class="comic-page__placeholder-text">Comic page not uploaded yet.</span>
+      </div>
+    )
+  }
+  <span class="comic-page__label" aria-hidden="true">{padded}</span>
+</section>
+
+<style>
+  .comic-page {
+    position: relative;
+    width: 100%;
+    max-width: var(--reader-width);
+    margin-inline: auto;
+  }
+
+  .comic-page img {
+    width: 100%;
+    height: auto;
+    background: var(--color-bg-inset);
+  }
+
+  .comic-page__placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    aspect-ratio: 2 / 3;
+    background: repeating-linear-gradient(
+      135deg,
+      var(--color-bg-inset),
+      var(--color-bg-inset) 10px,
+      var(--color-bg-raised) 10px,
+      var(--color-bg-raised) 20px
+    );
+    border: 1px dashed var(--color-border);
+    color: var(--color-text-faint);
+    text-align: center;
+    padding: var(--space-4);
+  }
+
+  .comic-page__placeholder-number {
+    font-family: var(--font-display);
+    font-size: 1.25rem;
+    color: var(--color-text-muted);
+  }
+
+  .comic-page__placeholder-text {
+    font-size: 0.85rem;
+    letter-spacing: 0.03em;
+  }
+
+  .comic-page__label {
+    display: block;
+    text-align: center;
+    margin-top: var(--space-2);
+    font-size: 0.7rem;
+    letter-spacing: 0.14em;
+    color: var(--color-text-faint);
+  }
+</style>
